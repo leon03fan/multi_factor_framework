@@ -1,0 +1,21 @@
+,fitness,expression,depth,length
+alpha_1,-0.001,close,0,1
+alpha_524,-0.001,low,0,1
+alpha_526,-0.001,volume,0,1
+alpha_529,-0.001,open,0,1
+alpha_532,-0.001,high,0,1
+alpha_123,-0.002,ta_cmo_14(volume),1,2
+alpha_500,-0.002,ts_mean_return_20(high),1,2
+alpha_631,-0.002,ts_delta_3(low),1,2
+alpha_588,-0.002,ts_wma_8(close),1,2
+alpha_121,-0.002,ta_lr_slope_10(volume),1,2
+alpha_138,-0.002,sqrt(high),1,2
+alpha_284,-0.002,ta_trima_8(high),1,2
+alpha_313,-0.003,ts_rank_10(ts_max_5(open)),2,3
+alpha_389,-0.003,ts_argrange_20(ta_trima_8(close)),2,3
+alpha_687,-0.003,ta_lr_angle_5(neg(open)),2,3
+alpha_128,-0.003,cos(ta_rsi_12(low)),2,3
+alpha_270,-0.003,ts_std_10(ts_argmax_10(close)),2,3
+alpha_141,-0.004,ta_lr_slope_5(ta_mom_25(ts_skew_40(high))),3,4
+alpha_384,-0.005,"ta_mfi_14(low, high, volume, volume)",1,5
+alpha_596,-0.006,"ts_argmin_5(ts_mean_return_20(ta_atr_25(open, open, open)))",3,6
