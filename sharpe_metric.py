@@ -18,10 +18,8 @@ class SharpeMetric:
 			p_pos_coef (float, optional): 仓位系数 Defaults to 1.
 			p_pos_thd (float, optional): 仓位阈值 Defaults to 1.
 		"""
-		path_split_date = "./split_data"
-		file_name = "大商所-豆一-a00.DF"
-		str_freq =  "15m"
-		self.p_file_path = f"{path_split_date}/{file_name}-none-{str_freq}-train.pkl"		# bar数据文件路径
+		obj_comm = comm()
+		self.p_file_path = f"{obj_comm.path_split_date}/{obj_comm.file_name}-none-{obj_comm.str_freq}-train.pkl"		# bar数据文件路径
 		self.p_n_of_year = p_n_of_year		# 年化周期数
 		self.p_rf = p_rf					# 无风险利率
 		self.p_predict_n = p_predict_n		# 预测多少根Bar

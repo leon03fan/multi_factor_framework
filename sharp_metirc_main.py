@@ -11,17 +11,15 @@ from gplearn.fitness import make_fitness
 from gplearn.functions import _function_map
 
 from sharpe_metric import  sharpe_metric
-import comm as comm
+from comm import comm
+
+
 
 
 if __name__ == '__main__':
+	obj_comm = comm()
 	start_time = time.time()
-
-	g_path_in_name = "./in"
-	g_path_out_name = "./out"
-	g_file_name = "大商所-豆一-a00.DF"
-	g_str_freq =  "15m"
-	g_full_file_name = f"{g_path_in_name}/{g_file_name}-none-{g_str_freq}.pkl"
+	g_full_file_name = f"{obj_comm.path_in_name}/{obj_comm.file_name}-none-{obj_comm.str_freq}.pkl"
 
 	date_begin = datetime(2020, 1, 1)
 	my_featurs = ['open', 'high', 'low', 'close', 'volume']
@@ -34,26 +32,28 @@ if __name__ == '__main__':
 	my_metric = make_fitness(function=sharpe_metric, greater_is_better=True, wrap=False)
 
 	ST_gplearn = SymbolicTransformer(
-									population_size=100000,     # 一次生成因子的数量，
-	                                 hall_of_fame=800,          #
-	                                 n_components=800,          # 最终输出多少个因子
-	                                 generations=3,             # 非常非常非常重要！！！--进化多少轮次？3也就顶天了
-	                                 tournament_size=800,       # 锦标赛入选的因子数量
-	                                 const_range=None,          # 常数取值范围 (-1, 1),  # critical
-	                                 init_depth=(2, 3),         # 第二重要的一个部位，控制我们公式的一个深度
-	                                 #  function_set=user_func, # 输入的算子群
-	                                 function_set=my_func,      # 输入的算子群
-	                                 metric=my_metric,          # 提升的点
-	                                 # metric='pearson',        # pearson相关系数
+									population_size=100000,     	# 一次生成因子的数量，
+	                                 hall_of_fame=800,          	#
+	                                 n_components=800,          	# 最终输出多少个因子
+	                                 tournament_size=800,       	# 锦标赛入选的因子数量
+	                                 generations=2,             	# 非常非常非常重要！！！--进化多少轮次？3也就顶天了
+	                                 const_range=None,          	# 常数取值范围 (-1, 1),  # critical
+	                                 init_depth=(2, 3),         	# 第二重要的一个部位，控制我们公式的一个深度
+	                                 #  function_set=user_func, 	# 输入的算子群
+	                                 function_set=my_func,      	# 输入的算子群
+	                                 metric=my_metric,          	# 提升的点
+	                                 # metric='pearson',        	# pearson相关系数
+									 init_method='half-and-half',
 	                                 parsimony_coefficient=0.001,
-	                                 p_crossover=0.4,
-	                                 p_subtree_mutation=0.02,
-	                                 p_hoist_mutation=0.02,
-	                                 p_point_mutation=0.02,
-	                                 p_point_replace=0.45,
-	                                 feature_names=my_featurs,	# 注意这里必须有feature_names 把重要算子“聚合化”，
-	                                 n_jobs=1,
-	                                 random_state=1)
+	                                 p_crossover=0.9,
+	                                 p_subtree_mutation=0.01,		# 子树变异概率
+	                                 p_hoist_mutation=0.01,			# 提升变异概率
+	                                 p_point_mutation=0.01,			# 点变异概率
+	                                 p_point_replace=0.4,			# 点替换概率
+									 max_samples=1.0,				# 最大样本权重
+	                                 feature_names=my_featurs,		
+	                                 n_jobs=-1,
+	                                 random_state=12)
 	ST_gplearn.fit(nd_train_X, nd_train_y)
 
 	best_programs = ST_gplearn._best_programs
@@ -68,7 +68,7 @@ if __name__ == '__main__':
 	best_programs_frame = best_programs_frame.drop_duplicates(subset=['expression'], keep='first')
 
 	print(best_programs_frame)
-	best_programs_frame.to_csv(f'{g_path_out_name}/score-{g_file_name}-{g_str_freq}.csv')
+	best_programs_frame.to_csv(f'{obj_comm.path_out_name}/score-{obj_comm.file_name}-none-{obj_comm.str_freq}.csv')
 
 
 
