@@ -10,7 +10,7 @@ from gplearn.genetic import SymbolicTransformer # 符号变换
 from gplearn.fitness import make_fitness
 from gplearn.functions import _function_map
 
-from sharpe_metric import  sharpe_metric
+from sharpe_metric import fit_metric
 from comm import comm
 
 
@@ -24,13 +24,10 @@ if __name__ == '__main__':
 	date_begin = datetime(2020, 1, 1)
 	my_featurs = ['open', 'high', 'low', 'close', 'volume']
 	# 后续要添加因子生成的features
-
 	nd_train_X, nd_train_y, _, _, date_split= comm.split_X_y(p_file_path= g_full_file_name, p_begin_date=date_begin, p_lst_feature=my_featurs)
 	# 后续要添加因子生成的features
-
-	my_func = list(_function_map.keys()) # [:10]
-	my_metric = make_fitness(function=sharpe_metric, greater_is_better=True, wrap=False)
-
+	my_func = list(_function_map.keys())[:10]
+	my_metric = make_fitness(function=fit_metric, greater_is_better=True, wrap=False)
 	ST_gplearn = SymbolicTransformer(
 									population_size=100000,     	# 一次生成因子的数量，
 	                                 hall_of_fame=800,          	#
@@ -39,13 +36,12 @@ if __name__ == '__main__':
 	                                 generations=2,             	# 非常非常非常重要！！！--进化多少轮次？3也就顶天了
 	                                 const_range=None,          	# 常数取值范围 (-1, 1),  # critical
 	                                 init_depth=(2, 3),         	# 第二重要的一个部位，控制我们公式的一个深度
-	                                 #  function_set=user_func, 	# 输入的算子群
 	                                 function_set=my_func,      	# 输入的算子群
 	                                 metric=my_metric,          	# 提升的点
 	                                 # metric='pearson',        	# pearson相关系数
-									 init_method='half-and-half',
+									 init_method='half and half',
 	                                 parsimony_coefficient=0.001,
-	                                 p_crossover=0.9,
+	                                 p_crossover=0.9,				# 交叉概率
 	                                 p_subtree_mutation=0.01,		# 子树变异概率
 	                                 p_hoist_mutation=0.01,			# 提升变异概率
 	                                 p_point_mutation=0.01,			# 点变异概率

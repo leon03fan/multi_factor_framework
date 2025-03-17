@@ -3,7 +3,7 @@ from sklearn.linear_model import LinearRegression
 
 import numpy as np
 import  pandas as pd
-import comm as comm
+from comm import comm
 
 class SharpeMetric:
 	def __init__(self, p_n_of_year:int=252, p_rf:float=0.03, p_predict_n:int=1, p_fee_rate:float=0.0002, p_pos_coef:float=1, p_pos_thd:float=1):
@@ -127,7 +127,7 @@ class SharpeMetric:
 		x = np.nan_to_num(factor_value.values)
 		return x
 
-def sharpe_metric(y, y_pred, w):
+def fit_metric(y, y_pred, w):
 	"""
 	夏普比率
 	Args:
