@@ -1,0 +1,87 @@
+
+### `.gitignore` 文件示例
+
+```plaintext
+# 忽略操作系统生成的文件
+.DS_Store
+Thumbs.db
+
+# 忽略IDE和编辑器生成的文件
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo
+
+# 忽略Python生成的文件
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyc
+*.pyd
+*.so
+.Python
+venv/
+env/
+*.egg-info/
+dist/
+build/
+*.egg
+
+# 忽略日志文件
+*.log
+*.log.*
+logs/
+
+# 忽略缓存文件
+.cache/
+*.cache
+
+# 忽略临时文件
+*.tmp
+*.temp
+
+# 忽略数据库文件
+*.db
+*.sqlite
+*.sqlite3
+
+# 忽略编译生成的文件
+*.class
+*.exe
+*.dll
+*.o
+*.obj
+*.out
+
+# 忽略打包文件
+*.zip
+*.tar.gz
+*.rar
+
+# 忽略配置文件（根据项目需求选择是否忽略）
+*.ini
+*.cfg
+*.conf
+
+# 忽略测试生成的文件
+.coverage
+htmlcov/
+.pytest_cache/
+
+# 忽略Node.js生成的文件
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 忽略其他文件
+*.bak
+*.swp
+*.swo
+```
+__pycache__/comm.cpython-310.pyc
+__pycache__/sharpe_metric.cpython-310.pyc

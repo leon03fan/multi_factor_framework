@@ -22,20 +22,25 @@ def fit_metric(y, y_pred, w):
 	# 读取数据集 并初始化
 	sm = SharpeMetric()
 	sm.prepare_data()
-	sm.ndarry_factor = y_pred
+	sm.list_y_pred = y_pred
+	# 将预测值拼接到数据集中
+	df_factor =pd.DataFrame(y_pred, columns=["factor"])
+	df_train["factor"] = y_pred
+	# df_train = pd.concat([df_train, df_factor], ignore_index=False, axis=1)
+	df_train = df_train.replace([np.inf, -np.inf, np.nan], 0.0)
 	# 拟合
-	nd_x_train = y_pred.reshape(-1, 1)
-	nd_y_train = sm.ndarray_price_change
-	linear_model = LinearRegression(fit_intercept=True) # 这里应该考虑是否需要fit_intercept
+	nd_x_train = df_factor['factor'].values.reshape(-1,1)
+	nd_y_train = df_train['ret'].values.reshape(-1,1)
+	linear_model = LinearRegression(fit_intercept=True)
 	linear_model.fit(nd_x_train, nd_y_train)
 	# 计算y_hat
-	ndarray_gp_y_train_hat = linear_model.predict(nd_x_train)
-	ndarray_y_hat = ndarray_gp_y_train_hat.reshape(-1)
+	y_train_hat = linear_model.predict(nd_x_train)
+	df_train["y_hat"] = [i[0] for i in y_train_hat]
 	# df_train["position"] =sm.rolling_norm(df_train['y_hat'].values) # 这里不应该再对y_hat进行滚动标准化 如果进行滚动标准化 会改变预测值，如本来是负值变为正值
 	# 计算基础信息：净值，收益率，其中考虑到了手续费
-	sm.calc_position_and_nav(ndarray_y_hat)
+	df_train = sm.calc_position_and_nav(df_train)
 	# 计算夏普比率
-	sharpe_ratio = sm.calc_sharpe_ratio()
+	sharpe_ratio = sm.calc_sharpe_ratio(df_train)
 	return sharpe_ratio
 
 
@@ -55,77 +60,79 @@ class SharpeMetric:
 		obj_comm = comm()
 		self.p_file_path = f"{obj_comm.path_split_date}/{obj_comm.file_name}-none-{obj_comm.str_freq}-train.pkl"		# bar数据文件路径
 
-		self.p_n_of_year 			= p_n_of_year		# 年化周期数
-		self.p_rf 					= p_rf				# 无风险利率
-		self.p_predict_n 			= p_predict_n		# 预测多少根Bar
-		self.p_fee_rate 			= p_fee_rate		# 交易费率
-		self.p_pos_coef 			= p_pos_coef		# 仓位系数
-		self.p_pos_thd 				= p_pos_thd			# 仓位阈值
+		self.p_n_of_year = p_n_of_year		# 年化周期数
+		self.p_rf = p_rf					# 无风险利率
+		self.p_predict_n = p_predict_n		# 预测多少根Bar
+		self.p_fee_rate = p_fee_rate		# 交易费率
+		self.p_pos_coef = p_pos_coef		# 仓位系数
+		self.p_pos_thd = p_pos_thd			# 仓位阈值
 
-		self.ndarray_close 			= np.array([])		# close
-		self.ndarray_tdate 			= np.array([])		# tdate
-		self.ndarray_price_change 	= np.array([])		# 价格变化
+		self.list_close = None				# close
+		self.list_tdate = None				# tdate
+		self.list_ret = None				# ret
 
-		self.ndarry_factor 			= np.array([])		# 遗传算法得到的值，这里引入是为了加速计算
+		self.list_y_pred = None				# 遗传算法得到的值，这里引入是为了加速计算
 
-		self.ndarray_position 		= np.array([])		# position
-		self.ndarray_ret 			= np.array([])		# ret
-		self.ndarray_nav 			= np.array([])		# nav
+		self.list_position = None			# position
+		self.list_nav = None				# nav
 
 	def prepare_data(self):
 		"""读取前面处理过的 保存在split_data目录下的Train数据集
 		Returns:
 			_type_: DataFrame
 		"""
-		df_train					= pd.read_pickle(self.p_file_path)
-		self.ndarray_close 			= df_train["close"].values
-		self.ndarray_tdate 			= df_train["tdate"].values
-		self.ndarray_price_change 	= df_train["price_change"].values
+		df_train= pd.read_pickle(self.p_file_path)
+		# df_train = df_train[["tdate","close","ret"]]    # 只取收盘价、收益率、时间戳、日期
+		self.list_close = df_train["close"]
+		self.list_date = df_train["tdate"]
+		self.list_ret = df_train["ret"]
+		return df_train
 
-	def calc_position_and_nav(self, p_ndarray_gp_y_hat: np.ndarray):
+	def calc_position_and_nav(self, p_df_train):
 		"""
-		计算仓位、手续费、净值：
-		净值(长度比list_close少一位)
+		回测数据集处理
+		计算相关指标：
 		Args:
 			p_df_train: 数据集,包含index,date,close,ret,y_hat_norm
+		Returns:
+			ndarray: 净值
 		"""
+		df_temp = p_df_train.copy()
+		# 计算价格每根bar的每日涨跌幅
+		# df_temp["price_change_pct"] = df_temp["close"].pct_change(1).fillna(0)
+
 		# 计算每根ba预测仓位
 		# 后续可以用sigmoid、tanh、relu，zscore等转换
-		self.ndarray_position = p_ndarray_gp_y_hat / 0.0005 * self.p_pos_coef
-		# 计算策略收益率
-		self.ndarray_ret = self.ndarray_position[:-1] * self.ndarray_price_change[1:]
-		# 计算手续费	
-		temp_list_strategy_strategy_fee = np.abs(self.ndarray_position[1:] - self.ndarray_position[:-1]) * self.p_fee_rate
-		# 计算实际净值
-		self.ndarray_nav = 1 + (self.ndarray_ret - temp_list_strategy_strategy_fee).cumsum()
+		df_temp["position"] = df_temp["y_hat"] / 0.0005
 
-	def calc_sharpe_ratio(self):
+		# 计算净值
+		arr_predict_postion = df_temp["position"].values
+		arr_price_change = df_temp["ret"].values
+		arr_strategy_returns = arr_predict_postion[:-1] * arr_price_change[1:]
+		arr_strategy_fee = np.abs(arr_predict_postion[1:] - arr_predict_postion[:-1]) * self.p_fee_rate
+
+		arr_strategy_nav = 1 + (arr_strategy_returns - arr_strategy_fee).cumsum()
+		df_temp = df_temp.iloc[:-1]
+		df_temp["nav"] = arr_strategy_nav
+		return df_temp
+
+	def calc_sharpe_ratio(self, p_df_data:pd.DataFrame):
 		"""
 		计算夏普比率
+		Args:
+			df_result: 数据集
 		Returns:
 			float: 夏普比率
 		"""
-		# 年化收益率
-		int_days = len(np.unique(self.ndarray_tdate))
-		annual_return = (self.ndarray_nav[-1] ** (252/int_days)) - 1
-		
-		# 将n分钟K线转化为日K线然后计算年化收益波动率
-		# 找到每一天的最后一个bar
-		temp_unique_dates = np.unique(self.ndarray_tdate)
-		temp_last_indices = np.searchsorted(self.ndarray_tdate, temp_unique_dates, side='right') - 1
-		temp_last_indices[-1] = temp_last_indices[-1] - 1 
-		temp_ndarray_day_last_nav = self.ndarray_nav[temp_last_indices]
-		# 计算日收益率
-		temp_nd_daily_returns = np.diff(temp_ndarray_day_last_nav) / temp_ndarray_day_last_nav[:-1]
-		# 计算年化收益波动率
-		annual_date_std = temp_nd_daily_returns.std() * np.sqrt(self.p_n_of_year)
-		
-		# 夏普比率 - 修正逻辑
-		if annual_date_std != 0 and not np.isnan(annual_return):
-			sharpe = (annual_return - self.p_rf) / annual_date_std
-		else:
-			sharpe = 0
-		
+        # 年化净值收益率
+		int_days = len(list(set(p_df_data["tdate"])))
+		arr_nav = p_df_data["nav"].values
+		annual_return = (arr_nav[-1] ** (252/int_days)) - 1 
+		# 将15分钟K线ret 转化为日ret 然后计算年化收益波动率
+		arr_daily_returns = p_df_data.groupby("tdate").last()["nav"].pct_change().replace([np.inf, -np.inf, np.nan], 0.0).values
+		annual_date_std = arr_daily_returns.std() * np.sqrt(self.p_n_of_year)
+		# 夏普比率
+		sharpe = (annual_return - self.p_rf) / annual_date_std if (annual_date_std != 0 and np.isnan(annual_return)) else 0 # 夏普比率
 		return sharpe
 
 	def acum_norm(self, p_nd):

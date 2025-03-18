@@ -2,15 +2,20 @@ import numpy as np
 import pandas as pd
 import pickle
 
-# df = pd.read_pickle("./split_data/大商所-豆一-a00.DF-none-5m-train.pkl")
-# print(df.head())
+import pandas as pd
+import numpy as np
 
-# 请帮我写一个例子，展示df_train['close'].pct_change(periods=p_n).shift(-p_n)的效果
+import numpy as np
 
-df = pd.read_pickle("./split_data/大商所-豆一-a00.DF-none-5m-train.pkl")
+# 假设 temp_ndarray_day_last_nav 是一个 numpy 数组
+temp_ndarray_day_last_nav = np.array([100, 101, 102, 103])
+print(temp_ndarray_day_last_nav)
 
-df['ret'] = df['close'].pct_change(periods=5)
-df['ret_shift'] = df['ret'].shift(-5)
+# 计算百分比变化
+pct_change = np.diff(temp_ndarray_day_last_nav) / temp_ndarray_day_last_nav[:-1]
+print(np.diff(temp_ndarray_day_last_nav))
+print(pct_change)
 
-print(df[['close', 'ret', 'ret_shift']].head(20))
-
+# 在开头添加 NaN，以匹配 pct_change() 的结果
+pct_change = np.insert(pct_change, 0, np.nan)
+print(pct_change)
