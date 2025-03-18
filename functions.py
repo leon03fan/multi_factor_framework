@@ -279,7 +279,6 @@ def _ta_trange(x1, x2, x3):
     return norm(x)
 
 # 截至20230522只有这些因子，需要把带有t的引进
-
 def _ts_cov_20(x1, x2):
     t = 20
     x1 = x1.flatten()
