@@ -14,8 +14,6 @@ from sharpe_metric import fit_metric
 from comm import comm
 
 
-
-
 if __name__ == '__main__':
 	obj_comm = comm()
 	start_time = time.time()
@@ -36,6 +34,7 @@ if __name__ == '__main__':
 	                                 generations			=2,             # 非常非常非常重要！！！--进化多少轮次？3也就顶天了
 	                                 const_range			=None,          # 常数取值范围 (-1, 1),  # critical
 	                                 init_depth				=(2, 3),        # 第二重要的一个部位，控制我们公式的一个深度
+									 stopping_criteria		=1.0,			# 早停机制
 	                                 function_set			=my_func,      	# 输入的算子群
 	                                 metric					=my_metric,     # 提升的点
 	                                 # metric				='pearson',     # pearson相关系数

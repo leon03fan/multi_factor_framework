@@ -46,7 +46,7 @@ class SharpeMetric:
 		初始化 SharpeMetric
 		"""
 		obj_comm = comm()
-		self.split_train_file 	= f"{obj_comm.path_split_date}/{obj_comm.file_name}-none-{obj_comm.str_freq}-train.pkl"		# bar数据文件路径
+		self.split_train_file 		= f"{obj_comm.path_split_date}/{obj_comm.file_name}-none-{obj_comm.str_freq}-train.pkl"		# bar数据文件路径
 
 		self.n_of_year 				= obj_comm.n_of_year	# 年化周期数
 		self.rf 					= obj_comm.rf			# 无风险利率
@@ -68,10 +68,10 @@ class SharpeMetric:
 		Returns:
 			_type_: DataFrame
 		"""
-		df_train					= pd.read_pickle(self.split_train_file)
-		self.ndarray_close 			= df_train["close"].values
-		self.ndarray_tdate 			= df_train["tdate"].values
-		self.ndarray_price_change 	= df_train["price_change"].values
+		tmp_df_train				= pd.read_pickle(self.split_train_file)
+		self.ndarray_close 			= tmp_df_train["close"].values
+		self.ndarray_tdate 			= tmp_df_train["tdate"].values
+		self.ndarray_price_change 	= tmp_df_train["price_change"].values
 
 	def calc_position_and_nav(self, p_ndarray_gp_y_hat: np.ndarray):
 		"""
@@ -82,13 +82,13 @@ class SharpeMetric:
 		"""
 		# 计算每根ba预测仓位
 		# 后续可以用sigmoid、tanh、relu，zscore等转换
-		self.ndarray_position 			= p_ndarray_gp_y_hat / 0.0005 * self.pos_coef
+		self.ndarray_position 		= p_ndarray_gp_y_hat / 0.0005 * self.pos_coef
 		# 计算策略收益率
-		self.ndarray_ret 				= self.ndarray_position[:-1] * self.ndarray_price_change[1:]
+		self.ndarray_ret 			= self.ndarray_position[:-1] * self.ndarray_price_change[1:]
 		# 计算手续费	
-		temp_ndarray_strategy_fee	 	= np.abs(self.ndarray_position[1:] - self.ndarray_position[:-1]) * self.fee_rate
-		# 计算实际净值
-		self.ndarray_nav 				= 1 + (self.ndarray_ret - temp_ndarray_strategy_fee).cumsum()
+		temp_ndarray_strategy_fee	= np.abs(self.ndarray_position[1:] - self.ndarray_position[:-1]) * self.fee_rate
+		# temp_ndarray_strategy_fee	= 0
+		self.ndarray_nav 			= 1 + (self.ndarray_ret - temp_ndarray_strategy_fee).cumsum()
 
 	def calc_sharpe_ratio(self):
 		"""
@@ -110,7 +110,9 @@ class SharpeMetric:
 		annual_date_std 			= temp_nd_daily_returns.std() * np.sqrt(self.n_of_year)
 
 		# 夏普比率
-		if annual_date_std > 0 and not np.isnan(annual_return):
+		if self.ndarray_nav[-1] < 0:
+			print(f"全部赔完了，夏普比率为0")
+		elif annual_date_std > 0 and not np.isnan(annual_return):
 			sharpe = (annual_return - self.rf) / annual_date_std
 		else:
 			sharpe = 0

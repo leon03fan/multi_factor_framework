@@ -323,7 +323,7 @@ def _ts_day_min_20(x1): #
     x = np.nan_to_num(np.concatenate((np.array([0] * t), x)))
     return norm(x)
 
-def _ts_day_min_40(x1): #   
+def _ts_day_min_40(x1): #    
     t = 40
     x1 = pd.Series(x1.flatten())
     x = sliding_window_view(x1, window_shape=t) #  

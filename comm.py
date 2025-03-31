@@ -7,7 +7,7 @@ import configparser
 
 class comm:
 	def __init__(self):
-		"""设置公用参数 后续可以修改为从数据库读取
+		"""设置公用参数 后续可以修改为从数据库读取 
 		"""
 		config_file = 'config.ini'
 		config = configparser.ConfigParser(inline_comment_prefixes=(';',))
@@ -70,7 +70,8 @@ class comm:
 		# 这里后续要添加产品信息和切割点到数据库，以便后续再次读取操作
 
 		# # 计算收益率
-		df_train['price_change'] = df_train['close'].pct_change(periods=p_n).shift(-p_n) #计算收益率 用于后续拟合Y
+		# df_train['price_change'] = df_train['close'].pct_change(periods=p_n).shift(-p_n) # 计算收益率 用于后续拟合Y
+		df_train["price_change"] = (df_train["close"].shift(-p_n) - df_train["close"])/ df_train["close"]# 计算收益率 用于后续拟合Y
 		df_train.dropna(axis=0, how='any', inplace=True)
 		# 计算日期
 		df_train["tdate"] = pd.to_datetime(df_train.index).date
